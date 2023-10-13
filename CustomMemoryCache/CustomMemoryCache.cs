@@ -10,9 +10,6 @@
 
 #endregion
 
-public static class CustomMemoryCache
+public class CustomMemoryCache<TKey, TValue>
 {
-    public static int AddIntegers(int a, int b) {
-        return a + b;
-    }
 }
