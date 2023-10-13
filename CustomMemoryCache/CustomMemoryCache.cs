@@ -12,4 +12,13 @@
 
 public class CustomMemoryCache<TKey, TValue>
 {
+    // Properties
+
+    // Constructor
+
+    // Add
+
+    // Get
+
+    // Remove
 }
