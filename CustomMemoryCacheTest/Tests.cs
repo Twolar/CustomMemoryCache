@@ -7,13 +7,14 @@ public class Tests
     // Act
     // Assert
 
-    private CustomMemoryCache<string> cache;
+    private CustomMemoryCache<string> _cache;
+    private int _cacheMaxSize = 3;
 
     [SetUp]
     public void SetUp()
     {
-        CustomMemoryCache<string>.Initialize(3);
-        cache = CustomMemoryCache<string>.Instance;
+        CustomMemoryCache<string>.Initialize(_cacheMaxSize);
+        _cache = CustomMemoryCache<string>.Instance;
     }
 
     [Test]
@@ -22,16 +23,19 @@ public class Tests
         var cache1 = CustomMemoryCache<string>.Instance;
         var cache2 = CustomMemoryCache<string>.Instance;
 
+        Assert.That(_cache, Is.SameAs(cache1));
+        Assert.That(_cache, Is.SameAs(cache2));
         Assert.That(cache1, Is.SameAs(cache2));
     }
 
     [Test]
-    public void AddAndGet()
+    public void AddAndGetAndCount()
     {
         var key = "ANG-item1";
         var value = "ANG-value1";
-        cache.Add(key, value);
-        Assert.That(cache.Get(key), Is.EqualTo(value));
+        _cache.Add(key, value);
+        Assert.That(_cache.Get(key), Is.EqualTo(value));
+        Assert.That(_cache.Count(), Is.EqualTo(1));
     }
 
     [Test]
@@ -39,10 +43,11 @@ public class Tests
     {
         var duplicateKey = "ADNADKTC-item1";
 
-        cache.Add(duplicateKey, "ADNADKTC-value1");
+        _cache.Add(duplicateKey, "ADNADKTC-value1");
+        var exception = Assert.Throws<Exception>(() => _cache.Add(duplicateKey, "ADNADKTC-value2"));
 
-        var exception = Assert.Throws<Exception>(() => cache.Add(duplicateKey, "ADNADKTC-value2"));
         Assert.That(exception.Message, Is.EqualTo("The key already exists in the cache"));
+        Assert.That(_cache.Count(), Is.EqualTo(2));
     }
 
     [Test]
@@ -50,18 +55,22 @@ public class Tests
     {
         var duplicateValue = "ADNADOVTC-value1";
 
-        cache.Add("ADNADOVTC-item1", duplicateValue);
-
-        var exception = Assert.Throws<Exception>(() => cache.Add("ADNADOVTC-item2", duplicateValue));
+        _cache.Add("ADNADOVTC-item1", duplicateValue);
+        var exception = Assert.Throws<Exception>(() => _cache.Add("ADNADOVTC-item2", duplicateValue));
+        
         Assert.That(exception.Message, Is.EqualTo("The value already exists in the cache"));
+        Assert.That(_cache.Count(), Is.EqualTo(_cacheMaxSize));
     }
 
     [Test]
     public void GetThrowsExceptionWhenKeyDoesNotExist()
     {
         var keyThatDoesNotExist = "GTEWKDNE-item1";
-        var exception = Assert.Throws<KeyNotFoundException>(() => cache.Get(keyThatDoesNotExist));
+
+        var exception = Assert.Throws<KeyNotFoundException>(() => _cache.Get(keyThatDoesNotExist));
+
         Assert.That(exception.Message, Is.EqualTo($"The key {keyThatDoesNotExist} was not found in the store."));
+        Assert.That(_cache.Count(), Is.EqualTo(_cacheMaxSize));
     }
 
     [Test]
@@ -69,12 +78,14 @@ public class Tests
     {
         var keyToBeEvictedFromCache = "RLU-item1";
 
-        cache.Add(keyToBeEvictedFromCache, "RLU-value1");
-        cache.Add("RLU-item2", "RLU-value2");
-        cache.Add("RLU-item3", "RLU-value3");
-        cache.Add("RLU-item4", "RLU-value4");
+        _cache.Add(keyToBeEvictedFromCache, "RLU-value1");
+        _cache.Add("RLU-item2", "RLU-value2");
+        _cache.Add("RLU-item3", "RLU-value3");
+        _cache.Add("RLU-item4", "RLU-value4");
 
-        var exception = Assert.Throws<KeyNotFoundException>(() => cache.Get(keyToBeEvictedFromCache));
+        var exception = Assert.Throws<KeyNotFoundException>(() => _cache.Get(keyToBeEvictedFromCache));
+
         Assert.That(exception.Message, Is.EqualTo($"The key {keyToBeEvictedFromCache} was not found in the store."));
+        Assert.That(_cache.Count(), Is.EqualTo(_cacheMaxSize));
     }
 }
