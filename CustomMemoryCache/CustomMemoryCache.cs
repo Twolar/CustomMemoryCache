@@ -13,10 +13,10 @@
 // TODO: Notify consumer of items evicted
 // TODO: Investigate compiler warnings regarding null references
 
-public class CustomMemoryCache<TKey>
+public class CustomMemoryCache<TKey> where TKey : notnull
 {
     private static readonly object padlock = new object();
-    private static CustomMemoryCache<TKey> instance = null;
+    private static CustomMemoryCache<TKey>? instance = null;
 
     private readonly int _cacheCapacity;
     private readonly Dictionary<TKey, LinkedListNode<CacheItem>> _cache;
@@ -109,8 +109,11 @@ public class CustomMemoryCache<TKey>
         lock (padlock)
         {
             var lastNode = _lruList.Last;
-            _cache.Remove(lastNode.Value.CIKey);
-            _lruList.RemoveLast();
+            if (lastNode != null)
+            {
+                _cache.Remove(lastNode.Value.CIKey);
+                _lruList.RemoveLast();
+            }
         }
     }
 
