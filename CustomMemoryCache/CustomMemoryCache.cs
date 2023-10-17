@@ -5,7 +5,7 @@ namespace CustomMemoryCache;
 #region Requirements
 
 // [x] create a generic in-memory cache component, which other developers can use in their applications.
-// [] component should be able to store arbitrary types of objects, which are added and retrieved using a unique key (similar to a dictionary).
+// [x] component should be able to store arbitrary types of objects, which are added and retrieved using a unique key (similar to a dictionary).
 // [x] configurable threshold for max number of items, if full it should evict a least used item to make space for a new item
 // [x] should be thread-safe singleton
 // [] notify consumer if items evicted
