@@ -98,7 +98,9 @@ public class CustomMemoryCache<TKey> where TKey : notnull
 
     public int Count()
     {
-        return _cache.Count;
+        lock (padlock) {
+            return _cache.Count;
+        }
     }
 
     private void RemoveLeastUsed()
