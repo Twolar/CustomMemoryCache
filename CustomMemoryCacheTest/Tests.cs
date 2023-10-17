@@ -17,6 +17,15 @@ public class Tests
     }
 
     [Test]
+    public void IsSingleton()
+    {
+        var cache1 = CustomMemoryCache<string>.Instance;
+        var cache2 = CustomMemoryCache<string>.Instance;
+
+        Assert.That(cache1, Is.SameAs(cache2));
+    }
+
+    [Test]
     public void AddAndGet()
     {
         var key = "ANG-item1";
