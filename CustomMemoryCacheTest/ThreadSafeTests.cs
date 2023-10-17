@@ -1,5 +1,6 @@
-namespace CustomMemoryCacheTest;
 using CustomMemoryCache;
+
+namespace CustomMemoryCacheTest;
 
 public class ThreadSafeTests
 {

@@ -1,7 +1,8 @@
-namespace CustomMemoryCacheTest;
 using CustomMemoryCache;
 
-public class Tests
+namespace CustomMemoryCacheTest;
+
+public class CoreTests
 {
     // Arrange
     // Act

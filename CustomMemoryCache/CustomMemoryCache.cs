@@ -1,4 +1,6 @@
-﻿namespace CustomMemoryCache;
+﻿using CustomMemoryCache.Models;
+
+namespace CustomMemoryCache;
 
 #region Requirements
 
@@ -11,7 +13,6 @@
 #endregion
 
 // TODO: Notify consumer of items evicted
-// TODO: Investigate compiler warnings regarding null references
 
 public class CustomMemoryCache<TKey> where TKey : notnull
 {
@@ -19,14 +20,14 @@ public class CustomMemoryCache<TKey> where TKey : notnull
     private static CustomMemoryCache<TKey>? instance = null;
 
     private readonly int _cacheCapacity;
-    private readonly Dictionary<TKey, LinkedListNode<CacheItem>> _cache;
-    private readonly LinkedList<CacheItem> _lruList;
+    private readonly Dictionary<TKey, LinkedListNode<CacheItem<TKey>>> _cache;
+    private readonly LinkedList<CacheItem<TKey>> _lruList;
 
     private CustomMemoryCache(int size = 5)
     {
         _cacheCapacity = size;
-        _cache = new Dictionary<TKey, LinkedListNode<CacheItem>>(_cacheCapacity);
-        _lruList = new LinkedList<CacheItem>();
+        _cache = new Dictionary<TKey, LinkedListNode<CacheItem<TKey>>>(_cacheCapacity);
+        _lruList = new LinkedList<CacheItem<TKey>>();
     }
 
     public static void Initialize(int size)
@@ -52,7 +53,7 @@ public class CustomMemoryCache<TKey> where TKey : notnull
         }
     }
 
-    public bool Add(TKey key, object value)
+    public void Add(TKey key, object value)
     {
         lock (padlock)
         {
@@ -74,13 +75,11 @@ public class CustomMemoryCache<TKey> where TKey : notnull
                 RemoveLeastUsed();
             }
 
-            var cacheItem = new CacheItem { CIKey = key, CIValue = value };
-            var node = new LinkedListNode<CacheItem>(cacheItem);
+            var cacheItem = new CacheItem<TKey>(key, value);
+            var node = new LinkedListNode<CacheItem<TKey>>(cacheItem);
 
             _lruList.AddFirst(node);
             _cache.Add(key, node);
-
-            return true;
         }
 
     }
@@ -115,11 +114,5 @@ public class CustomMemoryCache<TKey> where TKey : notnull
                 _lruList.RemoveLast();
             }
         }
-    }
-
-    private class CacheItem
-    {
-        public TKey CIKey { get; set; }
-        public object CIValue { get; set; }
     }
 }
