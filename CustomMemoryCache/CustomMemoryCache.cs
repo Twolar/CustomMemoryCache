@@ -10,9 +10,6 @@
 
 #endregion
 
-// TODO: Double check data structure layout
-// TODO: Unique key, some sort of hashing?
-// TODO: Singleton / Thread safe tests
 // TODO: Notify consumer of items evicted
 // TODO: Investigate compiler warnings regarding null references
 
@@ -47,62 +44,74 @@ public class CustomMemoryCache<TKey>
     {
         get
         {
-            lock (padlock)
+            if (instance == null)
             {
-                if (instance == null)
-                {
-                    throw new InvalidOperationException("Must call Initialize before using this cache");
-                }
-                return instance;
+                throw new InvalidOperationException("Must call Initialize before using this cache");
             }
+            return instance;
         }
     }
 
     public bool Add(TKey key, object value)
     {
-        if (_cache.Count >= _cacheCapacity)
+        lock (padlock)
         {
-            RemoveLeastUsed();
+            // Duplicate Key Check
+            if (_cache.TryGetValue(key, out var duplicateNode))
+            {
+                throw new Exception("The key already exists in the cache");
+            }
+
+            // Duplicate Value Check
+            if (_cache.Select(kvp => kvp.Value.Value)
+                .Any(cacheItem => cacheItem.CIValue.Equals(value)))
+            {
+                throw new Exception($"The value already exists in the cache");
+            }
+
+            if (_cache.Count >= _cacheCapacity)
+            {
+                RemoveLeastUsed();
+            }
+
+            var cacheItem = new CacheItem { CIKey = key, CIValue = value };
+            var node = new LinkedListNode<CacheItem>(cacheItem);
+
+            _lruList.AddFirst(node);
+            _cache.Add(key, node);
+
+            return true;
         }
 
-        // Duplicate Key Check
-        if (_cache.TryGetValue(key, out var duplicateNode))
-        {
-            throw new Exception("The key already exists in the cache");
-        }
-
-        var cacheItem = new CacheItem { CIKey = key, CIValue = value };
-        var node = new LinkedListNode<CacheItem>(cacheItem);
-
-        // Duplicate Value Check
-        if (_cache.Select(kvp => kvp.Value.Value)
-            .Any(cacheItem => cacheItem.CIValue.Equals(value)))
-        {
-            throw new Exception($"The value already exists in the cache");
-        }
-
-        _lruList.AddFirst(node);
-        _cache.Add(key, node);
-
-        return true;
     }
 
     public object Get(TKey key)
     {
-        if (_cache.TryGetValue(key, out var node))
+        lock (padlock)
         {
-            _lruList.Remove(node);
-            _lruList.AddFirst(node);
-            return node.Value.CIValue;
+            if (_cache.TryGetValue(key, out var node))
+            {
+                _lruList.Remove(node);
+                _lruList.AddFirst(node);
+                return node.Value.CIValue;
+            }
+            throw new KeyNotFoundException($"The key {key} was not found in the store.");
         }
-        throw new KeyNotFoundException($"The key {key} was not found in the store.");
+    }
+
+    public int Count()
+    {
+        return _cache.Count;
     }
 
     private void RemoveLeastUsed()
     {
-        var lastNode = _lruList.Last;
-        _cache.Remove(lastNode.Value.CIKey);
-        _lruList.RemoveLast();
+        lock (padlock)
+        {
+            var lastNode = _lruList.Last;
+            _cache.Remove(lastNode.Value.CIKey);
+            _lruList.RemoveLast();
+        }
     }
 
     private class CacheItem
