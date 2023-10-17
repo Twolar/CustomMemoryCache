@@ -98,7 +98,8 @@ public class CustomMemoryCache<TKey> where TKey : notnull
 
     public int Count()
     {
-        lock (padlock) {
+        lock (padlock)
+        {
             return _cache.Count;
         }
     }

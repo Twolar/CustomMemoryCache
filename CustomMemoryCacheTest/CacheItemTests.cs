@@ -9,7 +9,8 @@ public class CacheItemTests
     // Assert
 
     [Test]
-    public void SuccessfullyCreate() {
+    public void SuccessfullyCreate()
+    {
         var key = 1;
         var value = "value1";
 
@@ -26,7 +27,7 @@ public class CacheItemTests
 
         Assert.That(exception.Message, Is.EqualTo("Value cannot be null. (Parameter 'key')"));
     }
-    
+
     [Test]
     public void CIValueCannotBeNull()
     {
